@@ -14,7 +14,14 @@ import nltk
 #         print(text)
 #         print(nltk.pos_tag(nltk.word_tokenize(text)))
 
-if __name__ == '__main__':
-    pass
-    # trainingutils = TrainingUtils()
-    # trainingutils.load("data/textplain.txt")
+# if __name__ == '__main__':
+#     pass
+#     # trainingutils = TrainingUtils()
+#     # trainingutils.load("data/textplain.txt")
+
+# txt = "input a string and this will match variables in the template."
+# templt = "Enter a {{object}}, and it will {{action}}."
+#
+# fuzzy_matcher = FuzzyMatcher()
+# result = fuzzy_matcher.fuzzy_template_match(txt, templt)
+# print(result)

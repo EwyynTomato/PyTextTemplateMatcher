@@ -1,0 +1,13 @@
+Time:	2015-03-27 12:04:20.469(UTC)
+MachineName:	<_ntag label="Machine Name">ABC-NEWSBANKP1</_ntag>
+ClassName:	SyncDatabaseToRedis
+Parameters:	
+Message: <_ntag label="MultilineMessage">Timeout expired.
+The timeout period elapsed prior to completion of the operation or the server is not responding.
+Cannot open database "FleaMarket" requested by the login.
+The login failed.
+A transport-level error has occurred when receiving results from the server.
+(provider: TCP Provider, error: 0 - An existing connection was forcibly closed by the remote host.)</_ntag>
+RequestID:	4120a1f6-75c2-4dc0-b9e3-072707d00af7
+Exception: <_ntag label="MultilineException">System.ComponentModel.Win32Exception (0x80004005):
+The wait operation timed out</_ntag>
