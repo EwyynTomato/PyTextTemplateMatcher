@@ -2,8 +2,6 @@ import re
 import copy
 from base import BaseSimpleRepr
 from base import BaseMatcher
-import math
-
 
 class Offset(BaseSimpleRepr):
     """
@@ -25,6 +23,7 @@ class Memo(BaseSimpleRepr):
 class Result(BaseSimpleRepr):
     def __init__(self):
         self.vars = []
+        """:type: list[Vars]"""
         self.ld = 0
 
         self.adjustedld = 0
@@ -36,6 +35,28 @@ class Vars(BaseSimpleRepr):
         self.end = end
 
         self.value = None
+
+def _start_var_range(vname, idx, ftm):
+    new_ftm = copy.deepcopy(ftm)
+    new_ftm.vars = map(lambda v: v, ftm.vars)
+    new_ftm.vars.append(Vars(vname, idx, idx))
+    return new_ftm
+
+
+def _set_var_range(vname, idx, ftm):
+    class local:
+        v_found = False
+    def mapvars(v):
+        if v.v_name != vname:
+            return v
+        local.v_found = True
+        return Vars(vname, v.start, idx)
+    local.v_found = False
+    new_ftm = copy.copy(ftm)
+    new_ftm.vars = map(mapvars, ftm.vars)
+    if not local.v_found:
+        new_ftm.vars.append(Vars(vname, idx-1, idx))
+    return new_ftm
 
 class FuzzyMatcher(BaseMatcher):
     """
@@ -63,12 +84,28 @@ class FuzzyMatcher(BaseMatcher):
         self.offset_map.append(Offset(start_pos, v_name))
         return "*"
 
-    def _find(self, arr, fun):
+    @staticmethod
+    def _find(arr, fun):
         try:
             val = (val for val in arr if fun(val)).next()
         except StopIteration: #Nothing found
             val = None
         return val
+
+    @staticmethod
+    def _add_ld(increment, ftm):
+        new_ftm = copy.deepcopy(ftm)
+        new_ftm.ld = ftm.ld + increment
+        return new_ftm
+
+    @staticmethod
+    def _reduce_pftms(min_so_far, pftm):
+        if not min_so_far:
+            return pftm
+        if pftm.ld < min_so_far.ld:
+            return pftm
+        else:
+            return min_so_far
 
     def _memoize(self, fun):
         """:type: list[Memo]"""
@@ -83,73 +120,42 @@ class FuzzyMatcher(BaseMatcher):
             return value
         return lambda a, b: memoize(a, b)
 
-    def _ftm_recurse(self, lenA, lenB):
-        return self._memoize(lambda a,b: self._recurse(a, b))(lenA, lenB)
+    def _ftm_recurse(self, len_a, len_b):
+        return self._memoize(lambda a,b: self._recurse(a, b))(len_a, len_b)
 
-    def _set_var_range(self, vname, idx, ftm):
-        class local:
-            v_found = False
-        def mapvars(v):
-            if v.v_name != vname:
-                return v
-            local.v_found = True
-            return Vars(vname, v.start, idx)
-        local.v_found = False
-        new_ftm = copy.copy(ftm)
-        new_ftm.vars = map(mapvars, ftm.vars)
-        if not local.v_found:
-            new_ftm.vars.append(Vars(vname, idx-1, idx))
-        return new_ftm
-
-    @staticmethod
-    def _add_ld(increment, ftm):
-        new_ftm = copy.deepcopy(ftm)
-        new_ftm.ld = ftm.ld + increment
-        return new_ftm
-
-    def _start_var_range(self, vname, idx, ftm):
-        new_ftm = copy.deepcopy(ftm)
-        new_ftm.vars = map(lambda v: v, ftm.vars)
-        new_ftm.vars.append(Vars(vname, idx, idx))
-        return new_ftm
-
-    @staticmethod
-    def _reduce_pftms(min_so_far, pftm):
-        if not min_so_far:
-            return pftm
-        if pftm.ld < min_so_far.ld:
-            return pftm
-        else:
-            return min_so_far
-
-    def _recurse(self, lenA, lenB):
+    def _recurse(self, len_a, len_b):
         result = Result()
-        if lenA == 0:
-            result.ld = lenB
-            result.vars = map(lambda x: Vars(x.v_name, 0, 0), (offset for offset in self.offset_map if offset.offset < lenB))
+        if len_a == 0:
+            result.ld = len_b
+            result.vars = map(lambda x: Vars(x.v_name, 0, 0), (offset for offset in self.offset_map if offset.offset < len_b))
             return result
-        if lenB == 0:
-            result.ld = lenA
+        if len_b == 0:
+            result.ld = len_a
             return result
 
         pftms = []
-        v_at_offset = self._find(self.offset_map, lambda x: x.offset == (lenB -1))
+        v_at_offset = self._find(self.offset_map, lambda x: x.offset == (len_b -1))
         if v_at_offset:
-            pftms.append(self._set_var_range(v_at_offset.v_name, lenA,
-                                             self._add_ld(self.VARIABLE_LD, self._ftm_recurse(lenA - 1, lenB))))
-            pftms.append(self._start_var_range(v_at_offset.v_name, lenA,
-                                               self._ftm_recurse(lenA, lenB - 1)))
+            pftms.append(_set_var_range(v_at_offset.v_name, len_a,
+                                             self._add_ld(self.VARIABLE_LD, self._ftm_recurse(len_a - 1, len_b))))
+            pftms.append(_start_var_range(v_at_offset.v_name, len_a,
+                                               self._ftm_recurse(len_a, len_b - 1)))
         else:
-            tempftm = self._ftm_recurse(lenA, lenB - 1)
+            tempftm = self._ftm_recurse(len_a, len_b - 1)
             pftms.append(self._add_ld(1, tempftm))
-            pftms.append(self._add_ld(1, self._ftm_recurse(lenA - 1, lenB)))
-            if self._stringystring[lenA - 1] == self._templatestring[lenB - 1]:
-                pftms.append(self._ftm_recurse(lenA - 1, lenB - 1))
+            pftms.append(self._add_ld(1, self._ftm_recurse(len_a - 1, len_b)))
+            if self._stringystring[len_a - 1] == self._templatestring[len_b - 1]:
+                pftms.append(self._ftm_recurse(len_a - 1, len_b - 1))
             else:
                 pass
         return reduce(self._reduce_pftms, pftms)
 
     def fuzzy_template_match(self, text, template):
+        """
+        :param text:
+        :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
+        :rtype: Result
+        """
         self._stringystring = text
         self._templatestring = template
 
@@ -172,14 +178,3 @@ class FuzzyMatcher(BaseMatcher):
         result.adjustedld = int(round(result.ld - (variable_text_length * self.VARIABLE_LD)))
 
         return result
-
-# def train(self, text=None):
-#     super(FuzzyMatcher, self).train()
-
-# p = RegexTrainer()
-# soup = p.load("data/textplain.txt")
-
-# s = string.split("\n")
-# text = s[5]
-# print(text)
-# print(nltk.pos_tag(nltk.word_tokenize(text)))
