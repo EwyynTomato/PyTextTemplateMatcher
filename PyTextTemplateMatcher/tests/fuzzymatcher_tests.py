@@ -1,6 +1,6 @@
 import unittest
-from methods import fuzzymatcher
-from methods.fuzzymatcher import FuzzyMatcher, Vars
+from matcher import fuzzymatcher
+from matcher.fuzzymatcher import FuzzyMatcher, Vars
 
 text = "input a string and this will match variables in the template."
 template = "Enter a {{object}}, and it will {{action}}."
