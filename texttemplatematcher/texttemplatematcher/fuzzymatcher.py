@@ -195,6 +195,27 @@ class FuzzyMatcher(BaseMatcher):
 
         return result
 
+def mark(text, ivars):
+    """
+    Mark text with matched result.vars
+    e.g.
+        >>> from texttemplatematcher import fuzzymatcher
+        >>> text     = "input a string and this will match variables in the template."
+        >>> template = "input a {{object}} and this will {{action}}."
+        >>> result   = fuzzymatcher.fuzzy_template_match(text, template)
+        >>> fuzzymatcher.mark(text, result.vars)
+        input a {{string}} and this will {{match variables in the template}}.
+
+    :param str text: text to be marked
+    :param Vars vars: result.vars returned from fuzzy_template_match function
+    :rtype: str
+    """
+    marked = text
+    for var in ivars[::-1]: #Replace backwards so position offset won't mess with our result
+        replaced = "{{%s}}" % marked[var.start:var.end]
+        marked = marked[:var.start] + replaced + marked[var.start + len(replaced) - 4:]
+    return marked
+
 def fuzzy_template_match(text, template):
     """
     Shorthand function call to: FuzzyMatcher().fuzzy_template_match(text, template)

@@ -1,6 +1,6 @@
 import unittest
-from matcher import fuzzymatcher
-from matcher.fuzzymatcher import FuzzyMatcher, Vars
+from texttemplatematcher import fuzzymatcher
+from texttemplatematcher.fuzzymatcher import FuzzyMatcher, Vars
 
 text = "input a string and this will match variables in the template."
 template = "Enter a {{object}}, and it will {{action}}."
@@ -23,3 +23,9 @@ class FuzzyMatcherTest(unittest.TestCase):
         non_shorthand_result = matcher.fuzzy_template_match(text, template)
         shorthand_result = fuzzymatcher.fuzzy_template_match(text, template)
         self.assertEqual(non_shorthand_result, shorthand_result, "Non-shorthand result should equal shorthand result.")
+
+    def test_mark(self):
+        result = fuzzymatcher.fuzzy_template_match(text, template)
+        expected = "input a {{string}} and this will {{match variables in the template}}."
+        marked = fuzzymatcher.mark(text, result.vars)
+        self.assertEqual(expected, marked)
