@@ -23,10 +23,10 @@ class BaseMatcher(object):
         Train a model given text data
         :param str text: Train a model using this text
         """
-        print("super")
         text = text or self.text
         if text is None:
             raise ValueError("No text is loaded/provided, use load/loads(text) or train(text=text).")
+        raise NotImplementedError()
 
 class BaseSimpleRepr(object):
     def __repr__(self):

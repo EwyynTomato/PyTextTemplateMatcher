@@ -1,7 +1,5 @@
-import re
-import copy
-from base import BaseSimpleRepr
-from base import BaseMatcher
+import re, copy
+from base import BaseSimpleRepr, BaseMatcher
 
 class Offset(BaseSimpleRepr):
     """
@@ -21,42 +19,37 @@ class Memo(BaseSimpleRepr):
         self.val = val
 
 class Result(BaseSimpleRepr):
-    def __init__(self):
-        self.vars = []
+    def __init__(self, ivars=None, ld=0, adjustedld=0):
+        self.vars = ivars or []
         """:type: list[Vars]"""
-        self.ld = 0
+        self.ld = ld
 
-        self.adjustedld = 0
+        self.adjustedld = adjustedld
+
+    def __eq__(self, other):
+        is_equal = isinstance(other, self.__class__)
+        if is_equal:
+            is_equal = is_equal and (self.vars == other.vars)
+            is_equal = is_equal and (self.ld == other.ld)
+            is_equal = is_equal and (self.adjustedld == other.adjustedld)
+        return is_equal
 
 class Vars(BaseSimpleRepr):
-    def __init__(self, v_name, start, end):
+    def __init__(self, v_name, start, end, value=None):
         self.v_name = v_name
         self.start = start
         self.end = end
 
-        self.value = None
+        self.value = value
 
-def _start_var_range(vname, idx, ftm):
-    new_ftm = copy.deepcopy(ftm)
-    new_ftm.vars = map(lambda v: v, ftm.vars)
-    new_ftm.vars.append(Vars(vname, idx, idx))
-    return new_ftm
-
-
-def _set_var_range(vname, idx, ftm):
-    class local:
-        v_found = False
-    def mapvars(v):
-        if v.v_name != vname:
-            return v
-        local.v_found = True
-        return Vars(vname, v.start, idx)
-    local.v_found = False
-    new_ftm = copy.copy(ftm)
-    new_ftm.vars = map(mapvars, ftm.vars)
-    if not local.v_found:
-        new_ftm.vars.append(Vars(vname, idx-1, idx))
-    return new_ftm
+    def __eq__(self, other):
+        is_equal = isinstance(other, self.__class__)
+        if is_equal:
+            is_equal = is_equal and (self.v_name == other.v_name)
+            is_equal = is_equal and (self.start == other.start)
+            is_equal = is_equal and (self.end == other.end)
+            is_equal = is_equal and (self.value == other.value)
+        return is_equal
 
 class FuzzyMatcher(BaseMatcher):
     """
@@ -107,6 +100,29 @@ class FuzzyMatcher(BaseMatcher):
         else:
             return min_so_far
 
+    @staticmethod
+    def _start_var_range(vname, idx, ftm):
+        new_ftm = copy.deepcopy(ftm)
+        new_ftm.vars = map(lambda v: v, ftm.vars)
+        new_ftm.vars.append(Vars(vname, idx, idx))
+        return new_ftm
+
+    @staticmethod
+    def _set_var_range(vname, idx, ftm):
+        class local:
+            v_found = False
+        def mapvars(v):
+            if v.v_name != vname:
+                return v
+            local.v_found = True
+            return Vars(vname, v.start, idx)
+        local.v_found = False
+        new_ftm = copy.copy(ftm)
+        new_ftm.vars = map(mapvars, ftm.vars)
+        if not local.v_found:
+            new_ftm.vars.append(Vars(vname, idx-1, idx))
+        return new_ftm
+
     def _memoize(self, fun):
         """:type: list[Memo]"""
         def memoize(a, b):
@@ -136,9 +152,9 @@ class FuzzyMatcher(BaseMatcher):
         pftms = []
         v_at_offset = self._find(self.offset_map, lambda x: x.offset == (len_b -1))
         if v_at_offset:
-            pftms.append(_set_var_range(v_at_offset.v_name, len_a,
+            pftms.append(self._set_var_range(v_at_offset.v_name, len_a,
                                              self._add_ld(self.VARIABLE_LD, self._ftm_recurse(len_a - 1, len_b))))
-            pftms.append(_start_var_range(v_at_offset.v_name, len_a,
+            pftms.append(self._start_var_range(v_at_offset.v_name, len_a,
                                                self._ftm_recurse(len_a, len_b - 1)))
         else:
             tempftm = self._ftm_recurse(len_a, len_b - 1)
@@ -152,7 +168,7 @@ class FuzzyMatcher(BaseMatcher):
 
     def fuzzy_template_match(self, text, template):
         """
-        :param text:
+        :param text: input text to be tested against
         :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
         :rtype: Result
         """
@@ -178,3 +194,12 @@ class FuzzyMatcher(BaseMatcher):
         result.adjustedld = int(round(result.ld - (variable_text_length * self.VARIABLE_LD)))
 
         return result
+
+def fuzzy_template_match(text, template):
+    """
+    Shorthand function call to: FuzzyMatcher().fuzzy_template_match(text, template)
+    :param text: input text to be tested against
+    :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
+    :rtype: Result
+    """
+    return FuzzyMatcher().fuzzy_template_match(text, template)
