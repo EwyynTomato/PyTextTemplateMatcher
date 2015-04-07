@@ -3,9 +3,32 @@
     <head>
         <meta charset="utf-8">
         <title>Template Matcher</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     </head>
     <body>
+        <form action="match_template" id="form" method="post">
+            <label for="template">Template:</label><br/>
+            <textarea id="template" name="template" rows="5">{{ previnput.template }}</textarea><br/>
 
+            <label for="template">Test against text:</label><br/>
+            <textarea id="text" name="inputtext" rows="5">{{ previnput.inputtext }}</textarea><br/>
+
+            <label for="mimetype">Content MIME Type:</label>
+            <select><option value="text/plain">text/plain</option></select><br />
+
+            <br /><input type="submit">
+        </form>
+        <div id="results">
+            {% autoescape false %}
+            {% for match_function in match_functions %}
+                <div class="result">
+                    <span>Function: {{ match_function.function }}</span><br />
+                    <span>Result:</span><br />
+                    <span>{{ match_function.result }}</span><br />
+                </div>
+            {% endfor %}
+            {% endautoescape %}
+        </div>
     </body>
 </html>
