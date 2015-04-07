@@ -69,7 +69,7 @@ class FuzzyMatcher(BaseMatcher):
     def _replacevariable(self, regex_match):
         """
         Given a regex match object, replace template variable with '*' and add offset info into offset_map
-        :param _sre.SRE_Match regex_matches: _sre.SRE_Match object for replacement
+        :param _sre.SRE_Match regex_match: _sre.SRE_Match object for replacement
         :return: str
         """
         start_pos = regex_match.start()
