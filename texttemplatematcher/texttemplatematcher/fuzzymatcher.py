@@ -34,7 +34,7 @@ class FuzzyResult(BaseSimpleRepr):
             is_equal = is_equal and (self.adjustedld == other.adjustedld)
         return is_equal
 
-class Vars(BaseSimpleRepr):
+class FuzzyVars(BaseSimpleRepr):
     def __init__(self, v_name, start, end, value=None):
         self.v_name = v_name
         self.start = start
@@ -104,7 +104,7 @@ class FuzzyMatcher(BaseMatcher):
     def _start_var_range(vname, idx, ftm):
         new_ftm = copy.deepcopy(ftm)
         new_ftm.vars = map(lambda v: v, ftm.vars)
-        new_ftm.vars.append(Vars(vname, idx, idx))
+        new_ftm.vars.append(FuzzyVars(vname, idx, idx))
         return new_ftm
 
     @staticmethod
@@ -115,12 +115,12 @@ class FuzzyMatcher(BaseMatcher):
             if v.v_name != vname:
                 return v
             local.v_found = True
-            return Vars(vname, v.start, idx)
+            return FuzzyVars(vname, v.start, idx)
         local.v_found = False
         new_ftm = copy.copy(ftm)
         new_ftm.vars = map(mapvars, ftm.vars)
         if not local.v_found:
-            new_ftm.vars.append(Vars(vname, idx-1, idx))
+            new_ftm.vars.append(FuzzyVars(vname, idx-1, idx))
         return new_ftm
 
     def _memoize(self, fun):
@@ -143,7 +143,7 @@ class FuzzyMatcher(BaseMatcher):
         result = FuzzyResult()
         if len_a == 0:
             result.ld = len_b
-            result.vars = map(lambda x: Vars(x.v_name, 0, 0), (offset for offset in self.offset_map if offset.offset < len_b))
+            result.vars = map(lambda x: FuzzyVars(x.v_name, 0, 0), (offset for offset in self.offset_map if offset.offset < len_b))
             return result
         if len_b == 0:
             result.ld = len_a
@@ -179,7 +179,7 @@ class FuzzyMatcher(BaseMatcher):
             else:
                 self._templatestring = replaced
 
-    def fuzzy_template_match(self, text, template):
+    def template_match(self, text, template):
         """
         :param text: input text to be tested against
         :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
@@ -207,12 +207,12 @@ def mark(text, ivars):
         >>> from texttemplatematcher import fuzzymatcher
         >>> text     = "input a string and this will match variables in the template."
         >>> template = "input a {{object}} and this will {{action}}."
-        >>> result   = fuzzymatcher.fuzzy_template_match(text, template)
+        >>> result   = fuzzymatcher.template_match(text, template)
         >>> fuzzymatcher.mark(text, result.vars)
-        input a {{string}} and this will {{match variables in the template}}.
+        'input a {{string}} and this will {{match variables in the template}}.'
 
     :param str text: text to be marked
-    :param Vars vars: result.vars returned from fuzzy_template_match function
+    :param list[Vars] ivars: result.vars returned from template_match function
     :rtype: str
     """
     marked = text
@@ -221,11 +221,11 @@ def mark(text, ivars):
         marked = marked[:var.start] + replaced + marked[var.start + len(replaced) - 4:]
     return marked
 
-def fuzzy_template_match(text, template):
+def template_match(text, template):
     """
-    Shorthand function call to: FuzzyMatcher().fuzzy_template_match(text, template)
+    Shorthand function call to: FuzzyMatcher().template_match(text, template)
     :param text: input text to be tested against
     :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
     :rtype: FuzzyResult
     """
-    return FuzzyMatcher().fuzzy_template_match(text, template)
+    return FuzzyMatcher().template_match(text, template)
