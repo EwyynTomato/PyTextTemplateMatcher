@@ -18,7 +18,7 @@ class Memo(BaseSimpleRepr):
         self.b = b
         self.val = val
 
-class Result(BaseSimpleRepr):
+class FuzzyResult(BaseSimpleRepr):
     def __init__(self, ivars=None, ld=0, adjustedld=0):
         self.vars = ivars or []
         """:type: list[Vars]"""
@@ -140,7 +140,7 @@ class FuzzyMatcher(BaseMatcher):
         return self._memoize(lambda a,b: self._recurse(a, b))(len_a, len_b)
 
     def _recurse(self, len_a, len_b):
-        result = Result()
+        result = FuzzyResult()
         if len_a == 0:
             result.ld = len_b
             result.vars = map(lambda x: Vars(x.v_name, 0, 0), (offset for offset in self.offset_map if offset.offset < len_b))
@@ -183,7 +183,7 @@ class FuzzyMatcher(BaseMatcher):
         """
         :param text: input text to be tested against
         :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
-        :rtype: Result
+        :rtype: FuzzyResult
         """
         self._stringystring = text
         self._templatestring = template
@@ -226,6 +226,6 @@ def fuzzy_template_match(text, template):
     Shorthand function call to: FuzzyMatcher().fuzzy_template_match(text, template)
     :param text: input text to be tested against
     :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
-    :rtype: Result
+    :rtype: FuzzyResult
     """
     return FuzzyMatcher().fuzzy_template_match(text, template)
