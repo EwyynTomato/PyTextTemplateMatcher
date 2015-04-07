@@ -200,7 +200,7 @@ class FuzzyMatcher(BaseMatcher):
 
         return result
 
-def mark(text, ivars):
+def mark(text, ivars, prefix="{{", suffix="}}"):
     """
     Mark text with matched result.vars
     e.g.
@@ -212,13 +212,15 @@ def mark(text, ivars):
         'input a {{string}} and this will {{match variables in the template}}.'
 
     :param str text: text to be marked
-    :param list[Vars] ivars: result.vars returned from template_match function
+    :param list[FuzzyVars] ivars: result.vars returned from template_match function
+    :param str prefix: marking prefix, e.g. 'string' + 'prefix:{{' => '{{string'
+    :param str suffix: marking suffix, e.g. 'string' + 'suffix:}}' => 'string}}'
     :rtype: str
     """
     marked = text
     for var in ivars[::-1]: #Replace backwards so position offset won't mess with our result
-        replaced = "{{%s}}" % marked[var.start:var.end]
-        marked = marked[:var.start] + replaced + marked[var.start + len(replaced) - 4:]
+        replaced = "{:}{:}{:}".format(prefix, marked[var.start:var.end], suffix)
+        marked = marked[:var.start] + replaced + marked[var.start + len(replaced) - (len(prefix) + len(suffix)):]
     return marked
 
 def template_match(text, template):

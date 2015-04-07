@@ -47,11 +47,19 @@ class DifflibMatcherTest(unittest.TestCase):
         shorthand_result = difflibmatcher.template_match(text, template)
         self.assertEqual(non_shorthand_result, shorthand_result, "Non-shorthand result should equal shorthand result.")
 
-    def test_mark(self):
+    def test_mark_default(self):
         text     = "input a string and this will match variables in the template."
         template = "input a {{object}} and this will {{action}}."
 
         result = difflibmatcher.template_match(text, template)
         expected = "input a {{string}} and this will {{match variables in the template}}."
         marked = difflibmatcher.mark(text, result)
+        self.assertEqual(expected, marked)
+
+    def test_mark_custom_prefix_suffix(self):
+        text     = "input a string and this will match variables in the template."
+        template = "input a {{object}} and this will {{action}}."
+        result = difflibmatcher.template_match(text, template)
+        expected = 'input a <span class="span">string</span> and this will <span class="span">match variables in the template</span>.'
+        marked = difflibmatcher.mark(text, result, prefix='<span class="span">', suffix='</span>')
         self.assertEqual(expected, marked)

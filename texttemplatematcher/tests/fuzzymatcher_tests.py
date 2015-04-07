@@ -22,8 +22,14 @@ class FuzzyMatcherTest(unittest.TestCase):
         shorthand_result = fuzzymatcher.template_match(text, template)
         self.assertEqual(non_shorthand_result, shorthand_result, "Non-shorthand result should equal shorthand result.")
 
-    def test_mark(self):
+    def test_mark_default(self):
         result = fuzzymatcher.template_match(text, template)
         expected = "input a {{string}} and this will {{match variables in the template}}."
         marked = fuzzymatcher.mark(text, result.vars)
+        self.assertEqual(expected, marked)
+
+    def test_mark_custom_prefix_suffix(self):
+        result = fuzzymatcher.template_match(text, template)
+        expected = 'input a <span class="span">string</span> and this will <span class="span">match variables in the template</span>.'
+        marked = fuzzymatcher.mark(text, result.vars, prefix='<span class="span">', suffix='</span>')
         self.assertEqual(expected, marked)

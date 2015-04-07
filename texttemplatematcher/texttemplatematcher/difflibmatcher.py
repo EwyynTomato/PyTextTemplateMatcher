@@ -104,7 +104,7 @@ class DifflibMatcher(BaseMatcher):
 
         return result
 
-def mark(text, ivars):
+def mark(text, ivars, prefix="{{", suffix="}}"):
     """
     Mark text with matched result
     e.g.
@@ -116,13 +116,15 @@ def mark(text, ivars):
         'input a {{string}} and this will {{match variables in the template}}.'
 
     :param str text: text to be marked
-    :param list[Vars] ivars: result returned from template_match function
+    :param list[DifflibVars] ivars: result returned from template_match function
+    :param str prefix: marking prefix, e.g. 'string' + 'prefix:{{' => '{{string'
+    :param str suffix: marking suffix, e.g. 'string' + 'suffix:}}' => 'string}}'
     :rtype: str
     """
     marked = text
     for var in ivars[::-1]: #Replace backwards so position offset won't mess with our result
-        replaced = "{{%s}}" % marked[var.start_pos:var.end_pos]
-        marked = marked[:var.start_pos] + replaced + marked[var.start_pos + len(replaced) - 4:]
+        replaced = "{:}{:}{:}".format(prefix, marked[var.start_pos:var.end_pos], suffix)
+        marked = marked[:var.start_pos] + replaced + marked[var.start_pos + len(replaced) - (len(prefix) + len(suffix)):]
     return marked
 
 def template_match(text, template):
@@ -133,26 +135,3 @@ def template_match(text, template):
     :rtype: list[DifflibVars]
     """
     return DifflibMatcher().template_match(text, template)
-
-# # template = "private \U0000FFFF currentThread;"
-# # text = "x"
-text = "Hello dude. How are you. This should be good."
-template = "Hello {{name}}. zz {{not_found}}. This should be {{second}}."
-# # s = SequenceMatcher(lambda x: x == " ", template, text)
-# # for block in s.get_matching_blocks():
-# #     print "a[%d] and b[%d] match for %d elements" % block
-# # print("-"*100)
-# # for i in s.get_opcodes():
-# #     print("{: <30}: {:} ~ {:}".format(str(i), template[i[1]:i[2]], text[i[3]:i[4]]))
-# # print("-"*100)
-#
-# # text     = "input a string and this will match variables in the template."
-# # template = "input a {{object}} and this will {{action}}."
-# result   = template_match(text, template)
-# print(result)
-# print(mark(text, result))
-
-matcher = DifflibMatcher()
-result = matcher.template_match(text, template)
-
-print(result)
