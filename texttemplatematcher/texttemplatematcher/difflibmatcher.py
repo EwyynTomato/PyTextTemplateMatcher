@@ -85,7 +85,7 @@ class DifflibMatcher(BaseMatcher):
                     v_found += 1
 
         #Filter out non-matched strings
-        result = list(var for var in self._variablenames if var.start_pos != 0 and var.end_pos != 0)
+        result = list(var for var in self._variablenames if var.end_pos != 0)
 
         return result
 
