@@ -166,7 +166,6 @@ class FuzzyMatcher(BaseMatcher):
                 pass
         return reduce(self._reduce_pftms, pftms)
 
-
     def _mark_template_variable(self):
         """
         Replace {{variable}} with *, one varaible at a time (regex count=1 intead of 0) so .start offset would change
