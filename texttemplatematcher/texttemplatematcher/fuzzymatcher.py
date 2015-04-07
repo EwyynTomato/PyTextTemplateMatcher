@@ -189,7 +189,6 @@ class FuzzyMatcher(BaseMatcher):
         self._stringystring = text
         self._templatestring = template
 
-
         self._mark_template_variable()
 
         #- Process
