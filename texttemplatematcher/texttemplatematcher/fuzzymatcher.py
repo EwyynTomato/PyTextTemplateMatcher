@@ -173,7 +173,7 @@ class FuzzyMatcher(BaseMatcher):
         vreplaced = True
         while vreplaced:
             vreplaced = True
-            replaced = re.sub("\{\{(\w*?)\}\}", self._replacevariable, self._templatestring, 1)
+            replaced = re.sub("\{\{(.*?)\}\}", self._replacevariable, self._templatestring, 1)
             if self._templatestring == replaced:
                 vreplaced = False
             else:

@@ -45,7 +45,7 @@ class DifflibMatcher(BaseMatcher):
         Replace {{variable}} with u"\U0000FFFF".
         In contrast to fuzzymatcher, we don't really care about the offset here
         """
-        self._templatestring = re.sub("\{\{(\w*?)\}\}", self._replacevariable, self._templatestring)
+        self._templatestring = re.sub("\{\{(.*?)\}\}", self._replacevariable, self._templatestring)
 
     def _find_replaced_sequences(self):
         """
