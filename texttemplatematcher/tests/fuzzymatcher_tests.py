@@ -9,8 +9,6 @@ class FuzzyMatcherTest(unittest.TestCase):
     def test_matcher(self):
         matcher = FuzzyMatcher()
         result = matcher.fuzzy_template_match(text, template)
-        print(result)
-
         self.assertEqual(2, len(result.vars), "Should found two result.")
 
         expected_result_0_var = Vars(v_name="object", start=8, end=14, value="string")

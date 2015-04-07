@@ -166,6 +166,20 @@ class FuzzyMatcher(BaseMatcher):
                 pass
         return reduce(self._reduce_pftms, pftms)
 
+
+    def _mark_template_variable(self):
+        """
+        Replace {{variable}} with *, one varaible at a time (regex count=1 intead of 0) so .start offset would change
+        """
+        vreplaced = True
+        while vreplaced:
+            vreplaced = True
+            replaced = re.sub("\{\{(\w*?)\}\}", self._replacevariable, self._templatestring, 1)
+            if self._templatestring == replaced:
+                vreplaced = False
+            else:
+                self._templatestring = replaced
+
     def fuzzy_template_match(self, text, template):
         """
         :param text: input text to be tested against
@@ -175,15 +189,8 @@ class FuzzyMatcher(BaseMatcher):
         self._stringystring = text
         self._templatestring = template
 
-        #- Replace {{variable}} with *, once a time (regex count=1 intead of 0) so .start offset would change
-        vreplaced = True
-        while vreplaced:
-            vreplaced = True
-            replaced = re.sub("\{\{(\w*?)\}\}", self._replacevariable, self._templatestring, 1)
-            if self._templatestring == replaced:
-                vreplaced = False
-            else:
-                self._templatestring = replaced
+
+        self._mark_template_variable()
 
         #- Process
         result = self._ftm_recurse(len(self._stringystring), len(self._templatestring))
