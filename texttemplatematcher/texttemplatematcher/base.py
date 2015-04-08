@@ -1,9 +1,3 @@
-from enum import Enum
-
-class MimeType(Enum):
-    TextPlain = 1,
-    TextHtml = 2
-
 class BaseMatcher(object):
     def __init__(self):
         self.text = None
