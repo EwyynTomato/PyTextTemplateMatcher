@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+import logging
+
 import re
 from base import BaseMatcher, BaseSimpleRepr
 from difflib import SequenceMatcher
@@ -25,7 +28,9 @@ class DifflibMatcher(BaseMatcher):
     def __init__(self):
         super(DifflibMatcher, self).__init__()
         self._stringystring  = None
+        """:type: str"""
         self._templatestring = None
+        """:type: str"""
         self._variablenames  = [] # List to store Vars (containing template_variable_names, matched_text).
                                   # The reason for using list is to preserve order.
         """:type: list[Vars]"""
@@ -70,7 +75,11 @@ class DifflibMatcher(BaseMatcher):
         """
         v_found = 0
         seqmatcher = SequenceMatcher(lambda x: x == " ", self._templatestring, self._stringystring)
+        logging.debug("DifflibSequenceMatcher: check opscode")
         for opscode in seqmatcher.get_opcodes():
+            logging.debug("{:}, {:} ~ {:}".format(str(opscode),
+                                         repr(self._templatestring[opscode[1]:opscode[2]]),
+                                         self._stringystring[opscode[3]:opscode[4]]))
             state = opscode[0]
             if state == "replace":
                 template_text = self._templatestring[opscode[1]:opscode[2]]
