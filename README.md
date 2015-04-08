@@ -37,3 +37,8 @@ Found 'action' : 'match variables in the template'
 >>> print("Marked: {:}".format(fuzzymatcher.mark(text, result.vars)))
 Marked: input a {{string}} and this will {{match variables in the template}}.
 ```
+
+**Current limitation**
+
+    Since fuzzy matcher was originally written using recursive metdhod, and due to the constrain of Python's recursive depth,
+    current implementation of fuzzy matcher can only process short amount of text.

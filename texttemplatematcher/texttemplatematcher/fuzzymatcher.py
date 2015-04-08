@@ -1,5 +1,7 @@
-import re, copy
+import re, copy, sys
 from base import BaseSimpleRepr, BaseMatcher
+
+sys.setrecursionlimit(10000)
 
 class Offset(BaseSimpleRepr):
     """
