@@ -43,6 +43,25 @@ Marked: input a {{string}} and this will {{match variables in the template}}.
     Since fuzzy matcher was originally written using recursive metdhod, and due to the constrain of Python's recursive depth,
     current implementation of fuzzy matcher can only process short amount of text.
 
+Quick Demo
+----------
+
+Run quick demo script:
+
+```bash
+$ chmod +x quickdemo.sh
+$ ./quickdemo.sh
+```
+
+A browser would be opened and the demo page should load:
+
+![demoscreenshot](docresources/sc00.png)
+
+
+Project Folders
+---------------
+- [texttemplatematcher](texttemplatematcher) : The source files for our template matcher module
+- [webapp](webapp) : Demo website written in [Flask](http://flask.pocoo.org/)
 
 TODOs
 -----

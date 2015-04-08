@@ -11,6 +11,10 @@ class AppConfig(object):
         return self.config["IS_DEBUG"]
 
     @property
+    def app_host(self):
+        return self.config["APP_HOST"]
+
+    @property
     def app_port(self):
         return self.config["APP_PORT"]
 
