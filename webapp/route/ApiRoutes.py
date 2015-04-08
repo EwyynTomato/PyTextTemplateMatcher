@@ -1,6 +1,6 @@
 import logging
 import traceback
-from flask import Blueprint, request, render_template, redirect, escape, session
+from flask import Blueprint, request, render_template, redirect, escape, make_response
 from texttemplatematcher import fuzzymatcher, difflibmatcher
 
 apiroutes = Blueprint('apiroutes', __name__)
@@ -32,7 +32,7 @@ def match_template():
 
     match_functions = [
         {"function":"Fuzzy (Levenshtein)",
-         "result": fuzzymatcher.mark(escapedtext, fuzzymatcher.template_match(escapedtext, escapedtemplate).vars, prefix='<mark>', suffix='</mark>')}
+        "result": fuzzymatcher.mark(escapedtext, fuzzymatcher.template_match(escapedtext, escapedtemplate).vars, prefix='<mark>', suffix='</mark>')}
         , {"function":"Simple Sequence Matcher (Diff)",
            "result": difflibmatcher.mark(escapedtext, difflibmatcher.template_match(escapedtext, escapedtemplate), prefix='<mark>', suffix='</mark>')}
     ]
@@ -40,8 +40,3 @@ def match_template():
     logging.debug("result: {:}".format(match_functions))
 
     return render_template("index.html", previnput={"template":template, "inputtext":text}, match_functions=match_functions)
-
-@apiroutes.errorhandler(Exception)
-def errorhandler(uncaught_exception):
-    logging.error("Uncaught exception for request: " + str(request.form))
-    logging.error(uncaught_exception)
