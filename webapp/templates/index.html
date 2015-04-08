@@ -7,12 +7,13 @@
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     </head>
     <body>
+        <h1>String Template Matcher</h1>
         <form action="match_template" id="form" method="post">
             <label for="template">Template:</label><br/>
-            <textarea id="template" name="template" rows="5">{{ previnput.template }}</textarea><br/>
+            <textarea id="template" name="template" rows="2">{{ previnput.template }}</textarea><br/>
 
             <label for="template">Test against text:</label><br/>
-            <textarea id="text" name="inputtext" rows="5">{{ previnput.inputtext }}</textarea><br/>
+            <textarea id="text" name="inputtext" rows="2">{{ previnput.inputtext }}</textarea><br/>
 
             <label for="mimetype">Content MIME Type:</label>
             <select><option value="text/plain">text/plain</option></select><br />
