@@ -1,6 +1,8 @@
 Text Template Matcher
 =====================
 
+Currently only tested on Python 2.7.x
+
 Matchers: Difflib Matcher
 -------------------------
 Simple matcher using Python's [difflib SequenceMatcher](https://docs.python.org/2/library/difflib.html#).
@@ -60,7 +62,7 @@ A browser would be opened and the demo page should load:
 
 Project Folders
 ---------------
-- [texttemplatematcher](texttemplatematcher) : The source files for our template matcher module
+- [texttemplatematcher](texttemplatematcher) : The source files for this project module
 - [webapp](webapp) : Demo website written in [Flask](http://flask.pocoo.org/)
 
 TODOs
