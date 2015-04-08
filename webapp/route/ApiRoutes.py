@@ -1,6 +1,6 @@
 import logging
 import traceback
-from flask import Blueprint, request, render_template, redirect, escape, make_response
+from flask import Blueprint, request, render_template, redirect, escape
 from texttemplatematcher import fuzzymatcher, difflibmatcher
 
 apiroutes = Blueprint('apiroutes', __name__)
