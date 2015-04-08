@@ -72,3 +72,4 @@ TODOs
 - handling of MIME type: text/html
 - Use: Hidden Markov Model
 - Use: Conditional Random Field
+- setup.py or pip install
