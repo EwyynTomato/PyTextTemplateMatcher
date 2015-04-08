@@ -42,3 +42,12 @@ Marked: input a {{string}} and this will {{match variables in the template}}.
 
     Since fuzzy matcher was originally written using recursive metdhod, and due to the constrain of Python's recursive depth,
     current implementation of fuzzy matcher can only process short amount of text.
+
+
+TODOs
+-----
+- text segmentation (nltk)
+- charsets (i.e. different text segmentation method given a charset & MIME type)
+- handling of MIME type: text/html
+- Use: Hidden Markov Model
+- Use: Conditional Random Field
