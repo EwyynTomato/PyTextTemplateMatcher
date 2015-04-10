@@ -31,8 +31,8 @@ class DifflibMatcher(BaseMatcher):
         """:type: str"""
         self._variablenames  = [] # List to store Vars (containing template_variable_names, matched_text).
                                   # The reason for using list is to preserve order.
-        self._v_found        = 0  # current number of template variable being processed
         """:type: list[Vars]"""
+        self._v_found        = 0  # current number of template variable being processed
 
     def _replacevariable(self, regex_match):
         """
