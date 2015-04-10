@@ -27,12 +27,11 @@ class DifflibMatcher(BaseMatcher):
     """
     def __init__(self):
         super(DifflibMatcher, self).__init__()
-        self._stringystring  = None
-        """:type: str"""
         self._templatestring = None
         """:type: str"""
         self._variablenames  = [] # List to store Vars (containing template_variable_names, matched_text).
                                   # The reason for using list is to preserve order.
+        self._v_found        = 0  # current number of template variable being processed
         """:type: list[Vars]"""
 
     def _replacevariable(self, regex_match):
@@ -52,7 +51,7 @@ class DifflibMatcher(BaseMatcher):
         """
         self._templatestring = re.sub("\{\{(.*?)\}\}", self._replacevariable, self._templatestring)
 
-    def _find_replaced_sequences(self):
+    def _find_replaced_sequences(self, text, template, offset=0, depth=0, max_recursive_depth=3):
         """
         Find replaced sequences and return them as list of result
 
@@ -71,27 +70,35 @@ class DifflibMatcher(BaseMatcher):
             ('insert', 33, 33, 39, 79)    :  ~  private volatile abc currentThread; def
         Using difflib's SequenceMatcher, we define texts that are in state of 'replace' replacing single u'\U0000FFFF' as the matching string.
 
+        Added:
+            If one or more \U0000FFFF is within a text are being replaced,
+            recursively check the replaced template and ends the recursion if
+            max depth is reached or input sequence and output sequence is equal.
+
         :rtype: list[Vars]
         """
-        v_found = 0
-        seqmatcher = SequenceMatcher(lambda x: x == " ", self._templatestring, self._stringystring)
+        seqmatcher = SequenceMatcher(lambda x: x == " ", template, text)
         logging.debug("DifflibSequenceMatcher: check opscode")
         for opscode in seqmatcher.get_opcodes():
-            logging.debug("{:}, {:} ~ {:}".format(str(opscode),
-                                         repr(self._templatestring[opscode[1]:opscode[2]]),
-                                         self._stringystring[opscode[3]:opscode[4]]))
+            template_text      = template[opscode[1]:opscode[2]]
+            replaced_with_text = text[opscode[3]:opscode[4]]
+
+            logging.debug("[{:}] {:}, {:} ~ {:}".format(depth, str(opscode), repr(template_text), repr(replaced_with_text)))
             state = opscode[0]
             if state == "replace":
-                template_text = self._templatestring[opscode[1]:opscode[2]]
-                against_text  = self._stringystring[opscode[3]:opscode[4]]
                 if template_text == u"\U0000FFFF":
-                    self._variablenames[v_found].value     = against_text
-                    self._variablenames[v_found].start_pos = opscode[3]
-                    self._variablenames[v_found].end_pos   = opscode[4]
-                    v_found += 1
+                    self._variablenames[self._v_found].value     = replaced_with_text
+                    self._variablenames[self._v_found].start_pos = offset + opscode[3]
+                    self._variablenames[self._v_found].end_pos   = offset + opscode[4]
+                    logging.debug("[{:}] Found: ({:}, {:}, {:}, offset={:})".format(depth, replaced_with_text, opscode[3], opscode[4], offset))
+                    self._v_found += 1
                 elif u"\U0000FFFF" in template_text:
-                    # Not entirely "\U0000FFFF", meaning that the matched template variable should be empty.
-                    v_found += 1
+                    # Not entirely "\U0000FFFF", meaning that the matched template variable may be empty, but let's check deeper
+                    if (depth == max_recursive_depth) or (template_text == template):
+                        # Max recursive depth has been reached, or the recursive call result is the same with the input parameter
+                        self._v_found += template_text.count(u"\U0000FFFF") #May have multiple occurences of \u0000ffff that are replaced
+                    else:
+                        self._find_replaced_sequences(replaced_with_text, template_text, offset+opscode[3], depth+1)
 
         #Filter out non-matched strings
         result = list(var for var in self._variablenames if var.end_pos != 0)
@@ -104,13 +111,11 @@ class DifflibMatcher(BaseMatcher):
         :param str template: string representation of template, e.g. "hello {{name}}, I'm {{dude}}."
         :rtype: list[DifflibVars]
         """
-        self._stringystring  = text
         self._templatestring = template
-
         self._mark_template_variable()
-
-        result = self._find_replaced_sequences()
-
+        self._v_found = 0
+        result = self._find_replaced_sequences(text, self._templatestring)
+        logging.debug("Difflib result: " + repr(result))
         return result
 
 def mark(text, ivars, prefix="{{", suffix="}}"):
